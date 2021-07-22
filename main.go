@@ -2,62 +2,63 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"strconv"
 
-	"github.com/gorilla/mux"
+	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/middleware"
+)
+
+const (
+	mediaRoot     = "assets/media"
+	basicM3U8Name = "index.m3u8"
 )
 
 func main() {
-	http.Handle("/", handlers())
-	fmt.Println("server is listening on port 8000")
-	http.ListenAndServe(":8000", nil)
+	log.Println("Server starting on 8000")
+	r := chi.NewRouter()
+
+	r.Use(middleware.Recoverer)
+
+	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, "static/index.html")
+	})
+	r.Get("/media/{mId:[0-9]+}/stream/", handleStream)
+	r.Get("/media/{mId:[0-9]+}/stream/{segName:index[0-9]+.ts}", handleStream)
+	_ = http.ListenAndServe(":8000", r)
 }
 
-func handlers() *mux.Router {
-	router := mux.NewRouter()
-	router.HandleFunc("/", indexPage).Methods("GET")
-	router.HandleFunc("/media/{mId:[0-9]+}/stream/", streamHandler).Methods("GET")
-	router.HandleFunc("/media/{mId:[0-9]+}/stream/{segName:index[0-9]+.ts}", streamHandler).Methods("GET")
-	return router
-}
-
-func indexPage(w http.ResponseWriter, r *http.Request) {
-	http.ServeFile(w, r, "static/index.html")
-}
-
-func streamHandler(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	mId, err := strconv.Atoi(vars["mId"])
+func handleStream(w http.ResponseWriter, r *http.Request) {
+	mid := chi.URLParam(r, "mId")
+	mID, err := strconv.Atoi(mid)
 	if err != nil {
+		log.Println("mid not found")
 		w.WriteHeader(http.StatusNotFound)
 		return
 	}
 
-	segName, ok := vars["segName"]
-	if !ok {
-		mediaBase := getMediaBase(mId)
-		m3u8Name := "index.m3u8"
-		serveHlsM3U8(w, r, mediaBase, m3u8Name)
+	segName := chi.URLParam(r, "segName")
+	if segName == "" {
+		useM3U8(w, r, mID)
 	} else {
-		mediaBase := getMediaBase(mId)
-		serveHlsTs(w, r, mediaBase, segName)
+		useHlsTs(w, r, segName, mID)
 	}
 }
 
-func getMediaBase(mId int) string {
-	mediaRoot := "assets/media"
-	return fmt.Sprintf("%s/%d", mediaRoot, mId)
-}
-
-func serveHlsM3U8(w http.ResponseWriter, r *http.Request, mediaBase, m3u8Name string) {
-	mediaFile := fmt.Sprintf("%s/hls/%s", mediaBase, m3u8Name)
-	http.ServeFile(w, r, mediaFile)
-	w.Header().Set("Content-Type", "application/x-mpegURL")
-}
-
-func serveHlsTs(w http.ResponseWriter, r *http.Request, mediaBase, segName string) {
-	mediaFile := fmt.Sprintf("%s/hls/%s", mediaBase, segName)
+func useHlsTs(w http.ResponseWriter, r *http.Request, segname string, mId int) {
+	mediaFile := fmt.Sprintf("%s/hls/%s", getMediaBase(mId), segname)
 	http.ServeFile(w, r, mediaFile)
 	w.Header().Set("Content-Type", "video/MP2T")
+}
+
+func useM3U8(w http.ResponseWriter, r *http.Request, mId int) {
+	mediaFile := fmt.Sprintf("%s/hls/%s", getMediaBase(mId), basicM3U8Name)
+	http.ServeFile(w, r, mediaFile)
+	w.Header().Set("Content-Type", "application/x-mpegURL")
+
+}
+
+func getMediaBase(mId int) string {
+	return fmt.Sprintf("%s/%d", mediaRoot, mId)
 }
