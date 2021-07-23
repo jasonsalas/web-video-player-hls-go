@@ -12,6 +12,16 @@ Technologies used:
 - [HTTP Live Streaming](https://developer.apple.com/documentation/http_live_streaming)
 - [HLS.js](https://github.com/video-dev/hls.js/)
 ***
+### How to run this demo
+- [See how](https://github.com/jasonsalas/web-video-player-hls-go/tree/main/assets/media/README.md) to encode MP4 files into HLS segments using ffmpeg. The segments will be served as streaming chunks to the web client instead of forcing the browser to load the entire file all at once before playback, and also keeping the source data from prying eyes.
+- Start the web server using `go run main.go` or `go build -o server main.go` and then `./server` (or `./server.exe` if you're on Windows).
+- Launch [http://localhost:8000/](http://localhost:8000/) in your browser (the video *should* auto-play).
+
+**Now for added fun, launch Chrome's Developer Tools (`Ctrl+Shift+I`) and watch the streaming chunks progressively load in the Network tab as your video advances in 10-second segments. COOL!**
+
+![HLS segments load progressively as your video advances](https://github.com/jasonsalas/web-video-player-hls-go/blob/main/static/streaming_traffic.jpg)
+
+***
 TODOs:
 - Adaptive streaming - automatically adjust playback quality levels based on network fidelity
 - Support livestreams - this one's _slightly_ more involved...
