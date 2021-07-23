@@ -22,7 +22,12 @@ Technologies used:
 ![HLS segments load progressively as your video advances](https://github.com/jasonsalas/web-video-player-hls-go/blob/main/static/streaming_traffic.jpg)
 
 ***
+DOCKERIZE THE SERVER
+Run the following command at a terminal to build the system as a Docker image
+- Build the image: `docker build -t go-hls-streaming .`
+- Run the image: `docker run --name go-hls-streaming -d -p 8000:8000 go-hls-streaming`
+- Verify the server is running: `curl -i localhost:8000/media/1/stream/`
+***
 TODOs:
 - Adaptive streaming - automatically adjust playback quality levels based on network fidelity
 - Support livestreams - this one's _slightly_ more involved...
-- Package everything into a Docker image
