@@ -5,7 +5,7 @@
 ***
 #### This is a simple evolution of [my previous repo](https://github.com/jasonsalas/go-streaming-media-server) that deals with managing encoding media files and then serving them over HLS. This repo handles video content and uses a web front-end instead of a third-party to test the output.
 
-Technologies used:
+**Technologies used:**
 - [HTML5 video](https://web.dev/media/)
 - [Go](https://golang.org) & the [Chi](github.com/go-chi/chi) router
 - [ffmpeg](https://www.ffmpeg.org/)
@@ -22,7 +22,8 @@ Technologies used:
 ![HLS segments load progressively as your video advances](https://github.com/jasonsalas/web-video-player-hls-go/blob/main/static/streaming_traffic.jpg)
 
 ***
-DOCKERIZE THE SERVER
+**Dockerize the web app**
+
 Run the following command at a terminal to build the system as a Docker image
 - Build the image: `docker build -t go-hls-streaming .`
 - Run the image: `docker run --name go-hls-streaming -d -p 8000:8000 go-hls-streaming`
